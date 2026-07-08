@@ -163,7 +163,7 @@
 
 <script>
 const PLAYERS_RAW = /*PLAYERS*/;
-const LS_KEY='pk_decisions_ABC', IMG_KEY='pk_imgcache_v2', NAMES_KEY='pk_names', NB_KEY='pk_nbuckets';
+const LS_KEY='pk_decisions_ABC', IMG_KEY='pk_imgcache_v3', NAMES_KEY='pk_names', NB_KEY='pk_nbuckets';
 const ALL_IDS=['A','B','C'];
 let B_IDS=['A','B','C'];   // active buckets: ['A','B'] or ['A','B','C']
 const COL={A:'var(--a)',B:'var(--b)',C:'var(--c)'};
@@ -199,9 +199,18 @@ const COMMONS="https://commons.wikimedia.org/w/api.php";
 const WIKIDATA="https://www.wikidata.org/w/api.php";
 async function api(base, params){
   const p=new URLSearchParams({...params, format:"json"});
-  const r=await fetch(base+"?"+p.toString()+"&origin=*");
-  if(!r.ok) throw new Error("http "+r.status);
-  return r.json();
+  const url=base+"?"+p.toString()+"&origin=*";
+  let lastErr;
+  for(let a=0;a<3;a++){  // retry transient failures (network, 429 rate-limit, 5xx)
+    try{
+      const r=await fetch(url);
+      if(r.ok) return await r.json();
+      if(r.status<500 && r.status!==429) throw new Error("http "+r.status);
+      lastErr=new Error("http "+r.status);
+    }catch(e){ lastErr=e; }
+    await new Promise(res=>setTimeout(res, 400*(a+1)));
+  }
+  throw lastErr||new Error("api failed");
 }
 const norm=s=>s.normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]/g," ").trim();
 const stripParen=s=>s.replace(/\(.*?\)/g,"");
@@ -297,7 +306,7 @@ async function fetchImages(name, team){
 }
 let imgCache={};
 try{ imgCache=JSON.parse(localStorage.getItem(IMG_KEY)||"{}"); }catch(e){ imgCache={}; }
-try{ localStorage.removeItem('pk_imgcache'); }catch(e){}  // drop the old cache that could store empty results
+try{ localStorage.removeItem('pk_imgcache'); localStorage.removeItem('pk_imgcache_v2'); }catch(e){}  // drop old caches
 async function getImages(i){
   const p=players[i], k=p.key;
   if(imgCache[k]) return imgCache[k];
@@ -311,6 +320,10 @@ function prefetch(i){ if(i>=0&&i<total&&!imgCache[players[i].key]) getImages(i);
 
 /* ---------- app ---------- */
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function noPhotoHTML(p){
+  const initials=(p.name.replace(/[^A-Za-z ]/g,'').split(' ').filter(Boolean).map(w=>w[0]).join('')||'?').slice(0,3).toUpperCase();
+  return `<div class="noimg"><div class="mono">${esc(initials)}</div><div>no photo found</div></div>`;
+}
 function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(decisions)); }catch(e){} }
 function counts(){ const n={A:0,B:0,C:0}; for(const p of players) if(p.bucket && n[p.bucket]!==undefined) n[p.bucket]++;
   return {...n, decided:B_IDS.reduce((s,id)=>s+n[id],0)}; }
@@ -411,10 +424,13 @@ async function render(){
   const box=$('imgs');
   if(data.images&&data.images.length){
     box.className='imgs'+(data.images.length===1?' one':'');
-    box.innerHTML=data.images.map(u=>`<img src="${u}" onclick="zoom('${u}')" onerror="this.style.display='none'">`).join('');
+    box.innerHTML=data.images.map(u=>`<img src="${u}" onclick="zoom('${u}')">`).join('');
+    let fails=0; const imgs=box.querySelectorAll('img');
+    imgs.forEach(im=>im.addEventListener('error',()=>{  // if every photo fails to load, show the placeholder
+      im.style.display='none'; if(++fails>=imgs.length) box.innerHTML=noPhotoHTML(p);
+    }));
   }else{
-    const initials=(p.name.replace(/[^A-Za-z ]/g,'').split(' ').filter(Boolean).map(w=>w[0]).join('')||'?').slice(0,3).toUpperCase();
-    box.innerHTML=`<div class="noimg"><div class="mono">${initials}</div><div>no photo found</div></div>`;
+    box.innerHTML=noPhotoHTML(p);
   }
   const g=`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(p.name+' '+p.team+' footballer')}`;
   $('src').innerHTML=(data.title?`photo: <a href="${data.wiki}" target="_blank" rel="noopener">${esc(data.title)}</a> · `:'')+
