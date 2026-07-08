@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Penalty Kickers</title>
+<style>
+  :root{
+    --bg:#0e1116; --card:#1a1f29; --muted:#8b95a7; --fg:#eef2f8;
+    --a:#3b82f6; --b:#f59e0b; --c:#14b8a6; --line:#2a3140;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--fg);
+    font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden;-webkit-tap-highlight-color:transparent}
+  #app{height:100%;display:flex;flex-direction:column}
+  header{padding:14px 20px 10px;border-bottom:1px solid var(--line);position:relative}
+  .progwrap{display:flex;align-items:center;gap:14px;padding-right:78px}
+  .count{font-weight:700;font-size:15px;white-space:nowrap}
+  .count .big{font-size:20px}
+  .bar{flex:1;height:10px;border-radius:6px;background:#232a36;overflow:hidden}
+  .fill{height:100%;width:0;background:linear-gradient(90deg,var(--a),#60a5fa);transition:width .2s}
+  .tallies{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+  .tallies b{color:var(--fg)}
+  .pillA{color:var(--a)} .pillB{color:var(--b)} .pillC{color:var(--c)}
+  .backbtn{background:#141922;color:var(--fg);border:1px solid var(--line);border-radius:20px;
+    padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer}
+  .backbtn:hover{border-color:var(--muted)}
+  .backbtn[disabled]{opacity:.35;cursor:default}
+  .hb{position:absolute;top:12px;right:16px;z-index:6}
+  main{flex:1;display:flex;align-items:center;justify-content:center;padding:18px;min-height:0}
+  .card{width:min(920px,100%);height:100%;max-height:100%;background:var(--card);
+    border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column;
+    padding:18px;position:relative;overflow:hidden;touch-action:none;cursor:grab;will-change:transform}
+  .card:active{cursor:grabbing}
+  .imgs{flex:1;display:flex;gap:12px;min-height:0;align-items:center;justify-content:center}
+  .imgs img{height:100%;max-height:100%;max-width:32%;object-fit:cover;border-radius:12px;
+    background:#0b0e13;border:1px solid var(--line);pointer-events:none}
+  .imgs.one img{max-width:70%}
+  .noimg{color:var(--muted);text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .noimg .mono{font-size:64px}
+  .meta{margin-top:14px;text-align:center}
+  .name{font-size:32px;font-weight:800;letter-spacing:.2px}
+  .country{font-size:20px;color:#cdd6e6;margin-top:2px}
+  .sub{font-size:13px;color:var(--muted);margin-top:8px}
+  .sub a{color:var(--muted)}
+  .decided{position:absolute;top:14px;left:16px;font-weight:700;font-size:13px;
+    padding:4px 10px;border-radius:20px;border:1px solid var(--line)}
+  .swipetag{position:absolute;font-size:22px;font-weight:800;letter-spacing:1px;
+    padding:6px 12px;border-radius:10px;opacity:0;transition:opacity .08s;pointer-events:none}
+  .swipeA{top:18px;left:18px;color:var(--a);border:2px solid var(--a);transform:rotate(-12deg)}
+  .swipeB{top:18px;right:18px;color:var(--b);border:2px solid var(--b);transform:rotate(12deg)}
+  .swipeC{bottom:16px;left:50%;transform:translateX(-50%);color:var(--c);border:2px solid var(--c)}
+  footer{display:flex;gap:10px;justify-content:center;padding:12px 14px 14px}
+  .btn{flex:1;max-width:230px;border:1px solid var(--line);background:#141922;color:var(--fg);
+    border-radius:14px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:3px;transition:.12s;white-space:nowrap}
+  .btn small{font-weight:500;color:var(--muted);font-size:11px}
+  .btn.a:hover,.btn.a.hit{background:rgba(59,130,246,.18);border-color:var(--a)}
+  .btn.b:hover,.btn.b.hit{background:rgba(245,158,11,.16);border-color:var(--b)}
+  .btn.c:hover,.btn.c.hit{background:rgba(20,184,166,.16);border-color:var(--c)}
+  .hint{position:fixed;bottom:5px;left:0;right:0;text-align:center;color:var(--muted);font-size:12px}
+  .glow{position:fixed;pointer-events:none;opacity:0;transition:.12s;z-index:1}
+  #glowA{top:0;bottom:0;left:0;width:26%;background:linear-gradient(90deg,rgba(59,130,246,.5),transparent)}
+  #glowB{top:0;bottom:0;right:0;width:26%;background:linear-gradient(270deg,rgba(245,158,11,.45),transparent)}
+  #glowC{left:0;right:0;bottom:0;height:24%;background:linear-gradient(0deg,rgba(20,184,166,.5),transparent)}
+  .lb{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;
+    justify-content:center;z-index:20;cursor:zoom-out}
+  .lb img{max-width:94%;max-height:94%;border-radius:8px}
+  .spin{color:var(--muted)}
+  /* ---- stats ---- */
+  .stats{width:min(720px,100%);max-height:100%;overflow:auto;padding:6px 6px 40px}
+  .stats h1{font-size:24px;margin:0 0 12px;text-align:center;font-weight:800}
+  .heronum{font-size:52px;font-weight:800;text-align:center;line-height:1.05;letter-spacing:-.02em}
+  .herosub{text-align:center;color:var(--muted);margin:2px 0 22px;font-size:14px}
+  .schart{position:relative;padding-top:24px;margin:0 6px}
+  .srow{margin-bottom:15px}
+  .slab{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px}
+  .slab .chip{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:8px}
+  .slab .nm{font-weight:600}
+  .slab .dim{color:var(--muted);font-variant-numeric:tabular-nums}
+  .slab b{font-variant-numeric:tabular-nums;font-size:15px}
+  .strack{height:22px;background:#232a36;border-radius:6px;overflow:hidden}
+  .sfill{height:100%;border-radius:6px;transition:width .6s cubic-bezier(.2,.7,.2,1)}
+  .saxisline{position:absolute;top:18px;bottom:6px;width:2px;background:var(--fg);opacity:.32;z-index:2}
+  .saxislab{position:absolute;top:0;transform:translateX(-50%);font-size:11px;color:#cdd6e6;font-weight:600;white-space:nowrap}
+  .verdict2{text-align:center;font-size:17px;margin:20px 6px 4px;line-height:1.45}
+  .verdict2 .dim{color:var(--muted);font-size:14px;display:block;margin-top:7px}
+  .stable{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:20px;font-variant-numeric:tabular-nums}
+  .stable th,.stable td{padding:8px;border-bottom:1px solid var(--line);text-align:right}
+  .stable th:first-child,.stable td:first-child{text-align:left}
+  .stable thead th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .stable tbody tr:last-child td{font-weight:700;border-bottom:none}
+  .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+  .actions button{background:#141922;color:var(--fg);border:1px solid var(--line);border-radius:12px;
+    padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  .actions button:hover{border-color:var(--muted)}
+  .actions .share{background:var(--a);border-color:var(--a);color:#fff}
+  .actions .share:hover{filter:brightness(1.08)}
+  .snote{color:var(--muted);font-size:12px;margin-top:14px;text-align:center}
+</style>
+</head>
+<body>
+  <div id="app">
+    <div class="glow" id="glowA"></div>
+    <div class="glow" id="glowB"></div>
+    <div class="glow" id="glowC"></div>
+    <header>
+      <button class="backbtn hb" id="btnBack" disabled>↑ Back</button>
+      <div class="progwrap">
+        <div class="count"><span class="big" id="pos">–</span> / <span id="total">–</span></div>
+        <div class="bar"><div class="fill" id="fill"></div></div>
+      </div>
+      <div class="tallies">
+        <span>Sorted <b id="decided">0</b></span>
+        <span class="pillA">A <b id="ca">0</b></span>
+        <span class="pillB">B <b id="cb">0</b></span>
+        <span class="pillC">C <b id="cc">0</b></span>
+        <span>Left <b id="remain">0</b></span>
+      </div>
+    </header>
+    <main id="main"><div class="spin">Loading…</div></main>
+    <footer id="footer" style="display:none">
+      <div class="btn a" id="btnA"><span>← Bucket A</span><small>swipe left / ←</small></div>
+      <div class="btn c" id="btnC"><span>↓ Bucket C</span><small>swipe down / ↓</small></div>
+      <div class="btn b" id="btnB"><span>Bucket B →</span><small>swipe right / →</small></div>
+    </footer>
+    <div class="hint" id="hint">swipe ← A · → B · ↓ C &nbsp;·&nbsp; ↑ back &nbsp;·&nbsp; tap photo to enlarge</div>
+    <div class="lb" id="lb"><img id="lbimg"></div>
+  </div>
+
+<script>
+const PLAYERS_RAW = /*PLAYERS*/;
+const LS_KEY='pk_decisions_ABC', IMG_KEY='pk_imgcache';
+const B_IDS=['A','B','C'];
+const COL={A:'var(--a)',B:'var(--b)',C:'var(--c)'};
+const HEX={A:'#3b82f6',B:'#f59e0b',C:'#14b8a6'};
+const FLAGS = {
+  "Argentina":"🇦🇷","Australia":"🇦🇺","Austria":"🇦🇹","Belgium":"🇧🇪","Brazil":"🇧🇷",
+  "Canada":"🇨🇦","Colombia":"🇨🇴","Congo DR":"🇨🇩","Costa Rica":"🇨🇷","Croatia":"🇭🇷",
+  "Denmark":"🇩🇰","Ecuador":"🇪🇨","Egypt":"🇪🇬","England":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","France":"🇫🇷",
+  "Germany":"🇩🇪","Ghana":"🇬🇭","Iceland":"🇮🇸","Iran":"🇮🇷","Japan":"🇯🇵","Mexico":"🇲🇽",
+  "Morocco":"🇲🇦","Netherlands":"🇳🇱","Nigeria":"🇳🇬","Norway":"🇳🇴","Paraguay":"🇵🇾",
+  "Peru":"🇵🇪","Poland":"🇵🇱","Portugal":"🇵🇹","Russia":"🇷🇺","Saudi Arabia":"🇸🇦",
+  "Senegal":"🇸🇳","South Africa":"🇿🇦","Spain":"🇪🇸","Sweden":"🇸🇪","Switzerland":"🇨🇭",
+  "Tunisia":"🇹🇳","Wales":"🏴󠁧󠁢󠁷󠁬󠁳󠁿"
+};
+const $=id=>document.getElementById(id);
+const players=PLAYERS_RAW.map((p,i)=>({...p, i, key:p.name+" | "+p.team, flag:FLAGS[p.team]||"🏳️", bucket:null}));
+const total=players.length;
+let decisions={}, cur=0, busy=false;
+
+/* ---------- image lookup (client-side, Wikipedia/Commons/Wikidata) ---------- */
+const WIKI="https://en.wikipedia.org/w/api.php";
+const COMMONS="https://commons.wikimedia.org/w/api.php";
+const WIKIDATA="https://www.wikidata.org/w/api.php";
+async function api(base, params){
+  const p=new URLSearchParams({...params, format:"json"});
+  const r=await fetch(base+"?"+p.toString()+"&origin=*");
+  if(!r.ok) throw new Error("http "+r.status);
+  return r.json();
+}
+const norm=s=>s.normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]/g," ").trim();
+const stripParen=s=>s.replace(/\(.*?\)/g,"");
+function nameParts(name){
+  const toks=norm(stripParen(name)).split(/\s+/).filter(Boolean);
+  const first=(name.trim().split(/\s+/)[0]||"").replace(/\.$/,"");
+  return {initial: first.length===1?first.toLowerCase():null, sur: toks.length?toks[toks.length-1]:""};
+}
+async function resolveTitle(name, team){
+  const {initial,sur}=nameParts(name);
+  const cands=[], seen=new Set();
+  for(const q of [`${name} ${team} footballer`,`${name} ${team}`,`${sur} ${team} footballer`,`${sur} ${team} national football team`]){
+    let d; try{ d=await api(WIKI,{action:"query",list:"search",srsearch:q,srlimit:6}); }catch(e){ continue; }
+    for(const h of (d.query&&d.query.search||[])) if(!seen.has(h.title)){ seen.add(h.title); cands.push([h.title,cands.length]); }
+  }
+  const score=(title,rank)=>{
+    const toks=norm(stripParen(title)).split(/\s+/).filter(Boolean);
+    if(!toks.length) return -99;
+    let s=0;
+    if(toks[toks.length-1]===sur) s+=4;
+    else if(sur&&toks.includes(sur)) s+=3;
+    else if(sur&&norm(stripParen(title)).includes(sur)) s+=1;
+    else s-=5;
+    if(initial) s+= toks[0].startsWith(initial)?2:-1.5;
+    if(toks.includes("list")||toks.includes("career")||title.toLowerCase().includes("disambiguation")) s-=6;
+    return s-rank*0.05;
+  };
+  let best=null,bsc=-999;
+  for(const [t,rank] of cands){ const sc=score(t,rank); if(sc>bsc){bsc=sc;best=t;} }
+  return best;
+}
+const SKIP=new Set(["flag","flags","logo","logos","crest","crests","icon","icons","kit","kits",
+  "stadium","arena","map","maps","trophy","trophies","medal","medals","signature","badge","arms",
+  "banner","poster","diagram","location","coat"]);
+const isPhoto=fn=>{ const low=fn.toLowerCase();
+  if(!/\.(jpg|jpeg|png)$/.test(low)) return false;
+  return !low.split(/[^a-z0-9]+/).some(t=>SKIP.has(t)); };
+async function resolveFiles(files, base=WIKI){
+  if(!files.length) return [];
+  const d=await api(base,{action:"query",titles:files.join("|"),prop:"imageinfo",iiprop:"url",iiurlwidth:600});
+  return Object.values((d.query&&d.query.pages)||{}).filter(p=>p.imageinfo).map(p=>p.imageinfo[0].thumburl);
+}
+async function pageImages(title){
+  const urls=[];
+  try{ const d=await api(WIKI,{action:"query",titles:title,prop:"pageimages",piprop:"thumbnail",pithumbsize:600});
+    for(const p of Object.values((d.query&&d.query.pages)||{})) if(p.thumbnail) urls.push(p.thumbnail.source);
+  }catch(e){}
+  try{ const d=await api(WIKI,{action:"query",titles:title,prop:"images",imlimit:60});
+    let files=[];
+    for(const p of Object.values((d.query&&d.query.pages)||{})) for(const im of (p.images||[])) if(isPhoto(im.title)) files.push(im.title);
+    urls.push(...await resolveFiles(files.slice(0,8)));
+  }catch(e){}
+  return urls;
+}
+async function commons(query, surname){
+  let d; try{ d=await api(COMMONS,{action:"query",generator:"search",gsrsearch:query,gsrnamespace:6,
+    gsrlimit:12,prop:"imageinfo",iiprop:"url",iiurlwidth:600}); }catch(e){ return []; }
+  const urls=[];
+  for(const p of Object.values((d.query&&d.query.pages)||{})){
+    const title=p.title||"";
+    if(!isPhoto(title)) continue;
+    if(surname && !norm(title).split(/[^a-z0-9]+/).includes(surname)) continue;
+    if(p.imageinfo) urls.push(p.imageinfo[0].thumburl);
+  }
+  return urls;
+}
+async function wikidataImage(title){
+  try{
+    const d=await api(WIKI,{action:"query",titles:title,prop:"pageprops",ppprop:"wikibase_item"});
+    let qid=null;
+    for(const p of Object.values((d.query&&d.query.pages)||{})) qid=p.pageprops&&p.pageprops.wikibase_item;
+    if(!qid) return null;
+    const wd=await api(WIKIDATA,{action:"wbgetclaims",entity:qid,property:"P18"});
+    const claims=(wd.claims&&wd.claims.P18)||[]; if(!claims.length) return null;
+    const got=await resolveFiles(["File:"+claims[0].mainsnak.datavalue.value], COMMONS);
+    return got[0]||null;
+  }catch(e){ return null; }
+}
+async function fetchImages(name, team){
+  const {sur}=nameParts(name);
+  const title=await resolveTitle(name,team);
+  let urls=[];
+  if(title){
+    urls.push(...await pageImages(title));
+    if(urls.length<2) urls.push(...await commons(title,sur));
+    if(urls.length<1){ const wd=await wikidataImage(title); if(wd) urls.push(wd); }
+  }
+  if(urls.length<1) urls.push(...await commons(`${name} ${team}`,sur));
+  if(urls.length<1) urls.push(...await commons(`${sur} ${team} footballer`,sur));
+  const seen=new Set(), out=[];
+  for(const u of urls){ if(!seen.has(u)){ seen.add(u); out.push(u); } }
+  return {title, wiki: title?("https://en.wikipedia.org/wiki/"+encodeURIComponent(title.replace(/ /g,"_"))):null, images: out.slice(0,3)};
+}
+let imgCache={};
+try{ imgCache=JSON.parse(localStorage.getItem(IMG_KEY)||"{}"); }catch(e){ imgCache={}; }
+async function getImages(i){
+  const p=players[i], k=p.key;
+  if(imgCache[k]) return imgCache[k];
+  let d; try{ d=await fetchImages(p.name,p.team); }catch(e){ d={title:null,wiki:null,images:[]}; }
+  if(d.title||d.images.length){ imgCache[k]=d; try{ localStorage.setItem(IMG_KEY,JSON.stringify(imgCache)); }catch(e){} }
+  return d;
+}
+function prefetch(i){ if(i>=0&&i<total&&!imgCache[players[i].key]) getImages(i); }
+
+/* ---------- app ---------- */
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(decisions)); }catch(e){} }
+function counts(){ const n={A:0,B:0,C:0}; for(const p of players) if(n[p.bucket]!==undefined) n[p.bucket]++; return {...n, decided:n.A+n.B+n.C}; }
+
+function boot(){
+  try{ decisions=JSON.parse(localStorage.getItem(LS_KEY)||"{}"); }catch(e){ decisions={}; }
+  for(const p of players) p.bucket = decisions[p.key]||null;
+  cur=players.findIndex(p=>!p.bucket); if(cur<0) cur=total;
+  $('total').textContent=total;
+  $('btnA').onclick=()=>decide('A');
+  $('btnB').onclick=()=>decide('B');
+  $('btnC').onclick=()=>decide('C');
+  $('btnBack').onclick=back;
+  $('lb').onclick=()=>{ $('lb').style.display='none'; };
+  window.addEventListener('pointermove',onMove,{passive:false});
+  window.addEventListener('pointerup',onUp);
+  render();
+}
+
+async function render(){
+  const n=counts();
+  $('pos').textContent=Math.min(cur+1,total);
+  $('fill').style.width=(total?(cur/total*100):0)+'%';
+  $('decided').textContent=n.decided; $('ca').textContent=n.A; $('cb').textContent=n.B; $('cc').textContent=n.C;
+  $('remain').textContent=total-n.decided;
+  $('btnBack').disabled=(cur<=0);
+  if(cur>=total){ done(); return; }
+  $('footer').style.display='flex'; $('hint').style.display='';
+  const p=players[cur];
+  const tag=p.bucket?`<div class="decided" style="border-color:${HEX[p.bucket]};color:${HEX[p.bucket]}">in ${p.bucket}</div>`:'';
+  $('main').innerHTML=`<div class="card" id="card">${tag}
+    <div class="swipetag swipeA" id="tagA">A</div>
+    <div class="swipetag swipeB" id="tagB">B</div>
+    <div class="swipetag swipeC" id="tagC">C</div>
+    <div class="imgs" id="imgs"><div class="spin">fetching photos…</div></div>
+    <div class="meta">
+      <div class="name">${esc(p.name)}</div>
+      <div class="country">${p.flag} ${esc(p.team)}</div>
+      <div class="sub"><span id="src"></span></div>
+    </div></div>`;
+  $('card').addEventListener('pointerdown',onDown);
+  const idx=cur, data=await getImages(idx);
+  if(idx!==cur) return;
+  const box=$('imgs');
+  if(data.images&&data.images.length){
+    box.className='imgs'+(data.images.length===1?' one':'');
+    box.innerHTML=data.images.map(u=>`<img src="${u}" onclick="zoom('${u}')" onerror="this.style.display='none'">`).join('');
+  }else{
+    const initials=(p.name.replace(/[^A-Za-z ]/g,'').split(' ').filter(Boolean).map(w=>w[0]).join('')||'?').slice(0,3).toUpperCase();
+    box.innerHTML=`<div class="noimg"><div class="mono">${initials}</div><div>no photo found</div></div>`;
+  }
+  const g=`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(p.name+' '+p.team+' footballer')}`;
+  $('src').innerHTML=(data.title?`photo: <a href="${data.wiki}" target="_blank" rel="noopener">${esc(data.title)}</a> · `:'')+
+    `<a href="${g}" target="_blank" rel="noopener">wrong person? search ↗</a>`;
+  prefetch(cur+1); prefetch(cur+2);
+}
+
+function decide(bucket){
+  if(busy||cur>=total) return;
+  const i=cur;
+  players[i].bucket=bucket; decisions[players[i].key]=bucket; persist();
+  const btn=$('btn'+bucket); if(btn){ btn.classList.add('hit'); setTimeout(()=>btn.classList.remove('hit'),150); }
+  const glow=$('glow'+bucket); if(glow){ glow.style.opacity=1; setTimeout(()=>glow.style.opacity=0,150); }
+  cur++; render();
+}
+function back(){ if(cur>0){ cur--; render(); } }
+function zoom(u){ $('lbimg').src=u; $('lb').style.display='flex'; }
+
+/* ---------- swipe / drag (left=A, right=B, down=C) ---------- */
+let drag=null;
+function clearHints(){ for(const id of B_IDS){ const t=$('tag'+id), g=$('glow'+id); if(t)t.style.opacity=0; if(g)g.style.opacity=0; } }
+function onDown(e){
+  if(cur>=total) return;
+  const card=$('card'); if(!card) return;
+  drag={x0:e.clientX,y0:e.clientY,dx:0,dy:0,card};
+  card.style.transition='none';
+  try{ card.setPointerCapture(e.pointerId); }catch(_){}
+}
+function onMove(e){
+  if(!drag) return;
+  e.preventDefault();
+  drag.dx=e.clientX-drag.x0; drag.dy=e.clientY-drag.y0;
+  drag.card.style.transform=`translate(${drag.dx}px,${drag.dy}px) rotate(${drag.dx/26}deg)`;
+  const horiz=Math.abs(drag.dx)>=Math.abs(drag.dy);
+  const t=Math.min(1,(horiz?Math.abs(drag.dx):Math.abs(drag.dy))/120);
+  clearHints();
+  let id=null;
+  if(horiz) id = drag.dx<0?'A':'B';
+  else if(drag.dy>0) id='C';
+  if(id){ const tag=$('tag'+id), gl=$('glow'+id); if(tag)tag.style.opacity=t; if(gl)gl.style.opacity=t*0.9; }
+}
+function onUp(){
+  if(!drag) return;
+  const {dx,dy,card}=drag; drag=null;
+  clearHints();
+  const horiz=Math.abs(dx)>=Math.abs(dy);
+  const hT=Math.min(140, window.innerWidth*0.22), vT=Math.min(120, window.innerHeight*0.16);
+  let bucket=null, fx=0, fy=0;
+  if(horiz && Math.abs(dx)>hT){ bucket=dx<0?'A':'B'; fx=dx<0?-1.2:1.2; }
+  else if(!horiz && dy>vT){ bucket='C'; fy=1.2; }
+  if(bucket){
+    card.style.transition='transform .25s ease-out, opacity .25s';
+    card.style.transform=`translate(${fx*innerWidth}px,${fy*innerHeight}px) rotate(${fx*20}deg)`;
+    card.style.opacity=0;
+    setTimeout(()=>decide(bucket),170);
+  }else{
+    card.style.transition='transform .2s cubic-bezier(.2,.7,.2,1)'; card.style.transform='';
+  }
+}
+
+/* ---------- stats ---------- */
+function statsData(){
+  const g={}; B_IDS.forEach(id=>g[id]={k:0,goals:0,pl:0});
+  let allK=0,allG=0;
+  for(const p of players){ allK+=p.count; allG+=p.goals;
+    if(g[p.bucket]){ g[p.bucket].k+=p.count; g[p.bucket].goals+=p.goals; g[p.bucket].pl++; } }
+  B_IDS.forEach(id=>g[id].pct=g[id].k?100*g[id].goals/g[id].k:0);
+  g.all={k:allK,goals:allG,pl:players.length,pct: allK?100*allG/allK:0};
+  return g;
+}
+const fmt=x=>x.toFixed(1)+'%';
+function download(fn,text){ const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(text); a.download=fn; a.click(); }
+function bucketText(L){ return players.filter(p=>p.bucket===L).map(p=>p.name+'\t'+p.team).join('\n')+'\n'; }
+
+function verdictText(g){
+  const ranked=B_IDS.filter(id=>g[id].k>0).sort((a,b)=>g[b].pct-g[a].pct);
+  if(!ranked.length) return {main:'No players sorted yet.', sub:''};
+  if(ranked.length===1) return {main:`Only Bucket ${ranked[0]} has players (${fmt(g[ranked[0]].pct)}).`, sub:''};
+  const top=ranked[0], bot=ranked[ranked.length-1];
+  const spread=(g[top].pct-g[bot].pct).toFixed(1);
+  const list=ranked.map(id=>`Bucket ${id} ${fmt(g[id].pct)}`).join(' · ');
+  return {top, main:`Bucket ${top} is most likely to score`, sub:`${list} — a ${spread} pt spread`};
+}
+
+function done(){
+  $('footer').style.display='none'; $('hint').style.display='none';
+  $('fill').style.width='100%'; $('btnBack').disabled=false;
+  const g=statsData(), v=verdictText(g);
+  const bar=L=>{ const x=g[L];
+    return `<div class="srow">
+      <div class="slab"><span class="nm"><span class="chip" style="background:${HEX[L]}"></span>Bucket ${L}</span>
+        <span><b>${fmt(x.pct)}</b> <span class="dim">${x.goals}/${x.k}</span></span></div>
+      <div class="strack"><div class="sfill" data-w="${x.pct}" style="width:0;background:${HEX[L]}"></div></div>
+    </div>`; };
+  const trow=(L,label)=>`<tr><td>${label}</td><td>${g[L].pl}</td><td>${g[L].k}</td><td>${g[L].goals}</td><td>${fmt(g[L].pct)}</td></tr>`;
+  $('main').innerHTML=`<div class="stats">
+    <h1>All ${total} sorted — stats by bucket</h1>
+    <div class="heronum">${fmt(g.all.pct)}</div>
+    <div class="herosub">overall: ${g.all.goals} of ${g.all.k} penalties scored</div>
+    <div class="schart">
+      ${bar('A')}${bar('B')}${bar('C')}
+      <div class="saxisline" style="left:${g.all.pct}%"><span class="saxislab" style="left:0">avg ${fmt(g.all.pct)}</span></div>
+    </div>
+    <div class="verdict2">
+      <span style="color:${v.top?HEX[v.top]:'var(--fg)'};font-weight:800">${v.main}</span>.
+      <span class="dim">${v.sub}</span>
+    </div>
+    <table class="stable">
+      <thead><tr><th>Bucket</th><th>Players</th><th>Penalties</th><th>Scored</th><th>Rate</th></tr></thead>
+      <tbody>${trow('A','Bucket A')}${trow('B','Bucket B')}${trow('C','Bucket C')}${trow('all','All players')}</tbody>
+    </table>
+    <div class="actions">
+      <button class="share" onclick="shareImage()">📷 Share image of results</button>
+      <button onclick="download('bucketA.txt',bucketText('A'))">Download A</button>
+      <button onclick="download('bucketB.txt',bucketText('B'))">Download B</button>
+      <button onclick="download('bucketC.txt',bucketText('C'))">Download C</button>
+      <button onclick="resetAll()">Start over</button>
+    </div>
+    <div class="snote">Rates are per penalty kick; a player is counted once in a bucket but may have taken several. Press ↑ Back to revise any pick. Your picks are saved in this browser.</div>
+  </div>`;
+  requestAnimationFrame(()=>document.querySelectorAll('.sfill').forEach(f=>{f.style.width=f.dataset.w+'%';}));
+}
+function resetAll(){
+  if(!confirm('Clear all your picks and start over?')) return;
+  decisions={}; for(const p of players) p.bucket=null; persist();
+  cur=0; render();
+}
+
+/* ---------- shareable results image ---------- */
+function rrect(x,X,Y,w,h,r){ r=Math.min(r,h/2,w/2); x.beginPath();
+  x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+h,r); x.arcTo(X+w,Y+h,X,Y+h,r);
+  x.arcTo(X,Y+h,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); }
+function drawResultsCanvas(g, v){
+  const W=1080,H=1080,pad=80;
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const x=c.getContext('2d');
+  x.fillStyle='#12161c'; x.fillRect(0,0,W,H);
+  x.fillStyle='#eef2f8'; x.font='800 58px system-ui,Arial'; x.textAlign='left';
+  x.fillText('Penalty Kickers', pad, 118);
+  x.fillStyle='#8b95a7'; x.font='400 30px system-ui,Arial';
+  x.fillText('Which bucket of takers scores more?', pad, 162);
+  x.fillStyle='#eef2f8'; x.font='800 118px system-ui,Arial';
+  x.fillText(fmt(g.all.pct), pad, 300);
+  x.fillStyle='#8b95a7'; x.font='400 30px system-ui,Arial';
+  x.fillText(`overall — ${g.all.goals} of ${g.all.k} penalties scored`, pad, 346);
+  const barW=W-2*pad, barH=48, gap=118; let y=470;
+  const maxPct=Math.max(1,...B_IDS.map(id=>g[id].pct));
+  for(const id of B_IDS){
+    const s=g[id];
+    x.fillStyle=HEX[id]; rrect(x,pad,y-46,22,22,6); x.fill();
+    x.fillStyle='#eef2f8'; x.font='700 36px system-ui,Arial'; x.textAlign='left';
+    x.fillText('Bucket '+id, pad+36, y-26);
+    x.textAlign='right'; x.fillText(fmt(s.pct), pad+barW, y-26);
+    x.fillStyle='#8b95a7'; x.font='400 26px system-ui,Arial';
+    x.fillText(`${s.goals}/${s.k}`, pad+barW-140, y-26);
+    x.textAlign='left';
+    x.fillStyle='#232a36'; rrect(x,pad,y,barW,barH,12); x.fill();
+    x.fillStyle=HEX[id]; rrect(x,pad,y,Math.max(14,barW*Math.min(1,s.pct/100)),barH,12); x.fill();
+    y+=gap;
+  }
+  y+=6;
+  if(v.top){ x.fillStyle=HEX[v.top]; } else { x.fillStyle='#eef2f8'; }
+  x.font='800 40px system-ui,Arial'; x.textAlign='center';
+  x.fillText(v.main, W/2, y);
+  x.fillStyle='#8b95a7'; x.font='400 28px system-ui,Arial';
+  if(v.sub) x.fillText(v.sub, W/2, y+44);
+  x.fillStyle='#6b7686'; x.font='400 26px system-ui,Arial'; x.textAlign='center';
+  x.fillText('bitcoin-coder-bob.github.io/penalty-kickers', W/2, H-52);
+  return c;
+}
+async function shareImage(){
+  const g=statsData(), v=verdictText(g);
+  const c=drawResultsCanvas(g, v);
+  const blob=await new Promise(res=>c.toBlob(res,'image/png'));
+  const file=new File([blob],'penalty-kickers.png',{type:'image/png'});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:'Penalty Kickers', text:'My penalty-taker split'}); return; }
+    catch(e){ if(e && e.name==='AbortError') return; }
+  }
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='penalty-kickers.png'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'){e.preventDefault();decide('A');}
+  else if(e.key==='ArrowRight'){e.preventDefault();decide('B');}
+  else if(e.key==='ArrowDown'){e.preventDefault();decide('C');}
+  else if(e.key==='ArrowUp'||e.key==='Backspace'){e.preventDefault();back();}
+});
+boot();
+</script>
+</body>
+</html>
