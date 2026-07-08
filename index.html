@@ -676,6 +676,8 @@ async function shareImage(){
 }
 
 document.addEventListener('keydown',e=>{
+  const t=e.target;  // let text fields handle their own keys (backspace, arrows, etc.)
+  if(t && (t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)) return;
   if(e.key==='ArrowLeft'){e.preventDefault();decide('A');}
   else if(e.key==='ArrowRight'){e.preventDefault();decide('B');}
   else if(e.key==='ArrowDown'){e.preventDefault();if(nBuckets===3)decide('C');}
