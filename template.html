@@ -87,6 +87,15 @@
   .saxislab{position:absolute;top:0;transform:translateX(-50%);font-size:11px;color:#cdd6e6;font-weight:600;white-space:nowrap}
   .verdict2{text-align:center;font-size:17px;margin:20px 6px 4px;line-height:1.45}
   .verdict2 .dim{color:var(--muted);font-size:14px;display:block;margin-top:7px}
+  .compare{margin-top:24px}
+  .ctitle{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--muted);text-align:center;margin-bottom:10px}
+  .crow{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:10px 13px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;font-size:14px}
+  .crow .pair{color:var(--muted);white-space:nowrap;font-weight:600}
+  .crow .res{text-align:right}
+  .crow .dim{color:var(--muted)}
+  .crow.toprow{background:rgba(255,255,255,.035);border-color:var(--muted)}
   .stable{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:20px;font-variant-numeric:tabular-nums}
   .stable th,.stable td{padding:8px;border-bottom:1px solid var(--line);text-align:right}
   .stable th:first-child,.stable td:first-child{text-align:left}
@@ -407,6 +416,37 @@ function done(){
   $('footer').style.display='none'; $('hint').style.display='none';
   $('fill').style.width='100%'; $('btnBack').disabled=false;
   const g=statsData(), v=verdictText(g);
+  // pairwise "how much more likely to score": returns HTML for X vs Y
+  const cmp=(x,y,xl,yl)=>{
+    if(!x.k || !y.k) return '<span class="dim">not enough data</span>';
+    if(Math.abs(x.pct-y.pct)<0.05) return `<span class="dim">even at ${fmt(x.pct)}</span>`;
+    const hiX=x.pct>y.pct, hi=hiX?{p:x,l:xl}:{p:y,l:yl}, lo=hiX?{p:y,l:yl}:{p:x,l:xl};
+    const rel=Math.round((hi.p.pct/lo.p.pct-1)*100), pts=(hi.p.pct-lo.p.pct).toFixed(1);
+    return `<b style="color:${HEX[hi.l]}">Bucket ${hi.l}</b> — ${rel}% more likely `+
+           `<span class="dim">(+${pts} pts, ${(hi.p.pct/lo.p.pct).toFixed(2)}×)</span>`;
+  };
+  // top bucket (by rate) vs the other two pooled together
+  const nonEmpty=B_IDS.filter(id=>g[id].k>0);
+  let topId=null, topRest='<span class="dim">not enough data</span>';
+  if(nonEmpty.length>=2){
+    topId=nonEmpty.slice().sort((a,b)=>g[b].pct-g[a].pct)[0];
+    const others=B_IDS.filter(id=>id!==topId);
+    const rK=others.reduce((s,id)=>s+g[id].k,0), rG=others.reduce((s,id)=>s+g[id].goals,0);
+    if(rK>0){
+      const rPct=100*rG/rK, tp=g[topId].pct;
+      if(Math.abs(tp-rPct)<0.05) topRest=`<span class="dim">even at ${fmt(tp)}</span>`;
+      else{ const rel=Math.round((tp/rPct-1)*100), pts=(tp-rPct).toFixed(1);
+        topRest=`<b style="color:${HEX[topId]}">Bucket ${topId}</b> — ${rel}% more likely `+
+                `<span class="dim">(+${pts} pts, ${(tp/rPct).toFixed(2)}× · rest ${fmt(rPct)})</span>`; }
+    }
+  }
+  const compHTML=`<div class="compare">
+    <div class="ctitle">Head-to-head — how much more likely to score</div>
+    <div class="crow"><span class="pair">A vs B</span><span class="res">${cmp(g.A,g.B,'A','B')}</span></div>
+    <div class="crow"><span class="pair">B vs C</span><span class="res">${cmp(g.B,g.C,'B','C')}</span></div>
+    <div class="crow"><span class="pair">A vs C</span><span class="res">${cmp(g.A,g.C,'A','C')}</span></div>
+    <div class="crow toprow"><span class="pair">${topId?('Bucket '+topId):'Top'} vs the rest</span><span class="res">${topRest}</span></div>
+  </div>`;
   const bar=L=>{ const x=g[L];
     return `<div class="srow">
       <div class="slab"><span class="nm"><span class="chip" style="background:${HEX[L]}"></span>Bucket ${L}</span>
@@ -426,6 +466,7 @@ function done(){
       <span style="color:${v.top?HEX[v.top]:'var(--fg)'};font-weight:800">${v.main}</span>.
       <span class="dim">${v.sub}</span>
     </div>
+    ${compHTML}
     <table class="stable">
       <thead><tr><th>Bucket</th><th>Players</th><th>Penalties</th><th>Scored</th><th>Rate</th></tr></thead>
       <tbody>${trow('A','Bucket A')}${trow('B','Bucket B')}${trow('C','Bucket C')}${trow('all','All players')}</tbody>
