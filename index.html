@@ -73,15 +73,29 @@
   .stats{width:min(720px,100%);max-height:100%;overflow:auto;padding:6px 6px 40px}
   .stats h1{font-size:24px;margin:0 0 12px;text-align:center;font-weight:800}
   .heronum{font-size:52px;font-weight:800;text-align:center;line-height:1.05;letter-spacing:-.02em}
-  .herosub{text-align:center;color:var(--muted);margin:2px 0 16px;font-size:14px}
-  .names{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 22px}
-  .names .nlabel{color:var(--muted);font-size:13px}
-  .ninput{background:#141922;border:1px solid var(--line);color:var(--fg);border-radius:9px;
-    padding:7px 10px;font-size:13px;width:118px;outline:none}
+  .herosub{text-align:center;color:var(--muted);margin:2px 0 22px;font-size:14px}
+  .ninput{background:#141922;border:1px solid var(--line);color:var(--fg);border-radius:10px;
+    padding:11px 12px;font-size:15px;width:min(320px,80vw);outline:none}
   .ninput:focus{border-color:var(--muted)}
   .ninput[data-b="A"]{border-left:3px solid var(--a)}
   .ninput[data-b="B"]{border-left:3px solid var(--b)}
   .ninput[data-b="C"]{border-left:3px solid var(--c)}
+  /* setup screen */
+  .setup{width:min(440px,100%);text-align:center;padding:8px}
+  .setup .slogo{font-size:52px}
+  .setup h1{font-size:30px;margin:6px 0;font-weight:800}
+  .setup p{color:var(--muted);font-size:14px;margin:0 0 26px}
+  .setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px}
+  .setrow.col{flex-direction:column;align-items:stretch;gap:10px;text-align:left}
+  .slabel{color:#cdd6e6;font-size:14px;font-weight:600}
+  .setrow.col .slabel{color:var(--muted);font-weight:500;font-size:13px}
+  .ninputs{display:flex;flex-direction:column;gap:10px;align-items:center}
+  .seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .segbtn{background:#141922;color:var(--fg);border:0;padding:10px 22px;font-size:16px;font-weight:700;cursor:pointer}
+  .segbtn.active{background:var(--a);color:#fff}
+  .startbtn{margin-top:14px;width:100%;background:var(--a);color:#fff;border:0;border-radius:14px;
+    padding:15px;font-size:17px;font-weight:800;cursor:pointer}
+  .startbtn:hover{filter:brightness(1.08)}
   .schart{position:relative;padding-top:24px;margin:0 6px}
   .srow{margin-bottom:15px}
   .slab{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px}
@@ -133,7 +147,7 @@
         <span>Sorted <b id="decided">0</b></span>
         <span class="pillA">A <b id="ca">0</b></span>
         <span class="pillB">B <b id="cb">0</b></span>
-        <span class="pillC">C <b id="cc">0</b></span>
+        <span class="pillC" id="tallyC">C <b id="cc">0</b></span>
         <span>Left <b id="remain">0</b></span>
       </div>
     </header>
@@ -149,8 +163,9 @@
 
 <script>
 const PLAYERS_RAW = [{"name": "A. Granqvist", "team": "Sweden", "count": 2, "goals": 2, "years": [2018], "positions": ["CB"]}, {"name": "V. Moses", "team": "Nigeria", "count": 1, "goals": 1, "years": [2018], "positions": ["W"]}, {"name": "A. Davies", "team": "Canada", "count": 1, "goals": 0, "years": [2022], "positions": ["FB"]}, {"name": "L. Messi", "team": "Argentina", "count": 10, "goals": 6, "years": [2018, 2022, 2026], "positions": ["CM", "ST", "W"]}, {"name": "E. Hazard", "team": "Belgium", "count": 1, "goals": 1, "years": [2018], "positions": ["W"]}, {"name": "S. Kagawa", "team": "Japan", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "L. Modrić", "team": "Croatia", "count": 5, "goals": 4, "years": [2018, 2022], "positions": ["CM"]}, {"name": "M. Jedinak", "team": "Australia", "count": 2, "goals": 2, "years": [2018], "positions": ["CM"]}, {"name": "A. Griezmann", "team": "France", "count": 3, "goals": 3, "years": [2018], "positions": ["CM", "ST"]}, {"name": "K. Ansarifard", "team": "Iran", "count": 1, "goals": 1, "years": [2018], "positions": ["ST"]}, {"name": "C. Vela", "team": "Mexico", "count": 1, "goals": 1, "years": [2018], "positions": ["W"]}, {"name": "G. Sigurdsson", "team": "Iceland", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "C. Cueva", "team": "Peru", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "Salman Al Faraj", "team": "Saudi Arabia", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "F. Sassi", "team": "Tunisia", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "Neymar", "team": "Brazil", "count": 2, "goals": 2, "years": [2022, 2026], "positions": ["CM", "ST"]}, {"name": "I. Sarr", "team": "Senegal", "count": 1, "goals": 1, "years": [2022], "positions": ["W"]}, {"name": "İ. Gündoğan", "team": "Germany", "count": 1, "goals": 1, "years": [2022], "positions": ["CM"]}, {"name": "A. Ayew", "team": "Ghana", "count": 1, "goals": 0, "years": [2022], "positions": ["ST"]}, {"name": "Y. Tielemans", "team": "Belgium", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "Bruno Guimarães", "team": "Brazil", "count": 1, "goals": 0, "years": [2026], "positions": ["CM"]}, {"name": "T. Mokoena", "team": "South Africa", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "G. Xhaka", "team": "Switzerland", "count": 2, "goals": 2, "years": [2026], "positions": ["CM"]}, {"name": "B. Ruiz", "team": "Costa Rica", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "Salem Al Dawsari", "team": "Saudi Arabia", "count": 1, "goals": 0, "years": [2022], "positions": ["W"]}, {"name": "Bruno Fernandes", "team": "Portugal", "count": 1, "goals": 1, "years": [2022], "positions": ["CM"]}, {"name": "Ferrán Torres", "team": "Spain", "count": 1, "goals": 1, "years": [2022], "positions": ["W"]}, {"name": "H. Kane", "team": "England", "count": 8, "goals": 7, "years": [2018, 2022, 2026], "positions": ["ST"]}, {"name": "G. Sigurðsson", "team": "Iceland", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "Cristiano Ronaldo", "team": "Portugal", "count": 4, "goals": 3, "years": [2018, 2022, 2026], "positions": ["ST"]}, {"name": "Marwan Mohsen", "team": "Egypt", "count": 1, "goals": 1, "years": [2018], "positions": ["ST"]}, {"name": "Fahad Al Muwallad", "team": "Saudi Arabia", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "A. Dzyuba", "team": "Russia", "count": 1, "goals": 1, "years": [2018], "positions": ["ST"]}, {"name": "K. Mbappé", "team": "France", "count": 4, "goals": 4, "years": [2022, 2026], "positions": ["ST"]}, {"name": "M. Taremi", "team": "Iran", "count": 2, "goals": 1, "years": [2022, 2026], "positions": ["ST"]}, {"name": "R. Lewandowski", "team": "Poland", "count": 2, "goals": 1, "years": [2022], "positions": ["ST"]}, {"name": "Enner Valencia", "team": "Ecuador", "count": 1, "goals": 1, "years": [2022], "positions": ["ST"]}, {"name": "G. Bale", "team": "Wales", "count": 1, "goals": 1, "years": [2022], "positions": ["ST"]}, {"name": "M. Arnautović", "team": "Austria", "count": 1, "goals": 1, "years": [2026], "positions": ["ST"]}, {"name": "Y. Wissa", "team": "Congo DR", "count": 1, "goals": 1, "years": [2026], "positions": ["ST"]}, {"name": "K. Havertz", "team": "Germany", "count": 2, "goals": 1, "years": [2026], "positions": ["ST"]}, {"name": "L. Martínez", "team": "Argentina", "count": 2, "goals": 2, "years": [2022, 2026], "positions": ["ST"]}, {"name": "R. Jiménez", "team": "Mexico", "count": 1, "goals": 1, "years": [2026], "positions": ["ST"]}, {"name": "J. Strand Larsen", "team": "Norway", "count": 1, "goals": 0, "years": [2026], "positions": ["ST"]}, {"name": "B. Embolo", "team": "Switzerland", "count": 1, "goals": 1, "years": [2026], "positions": ["ST"]}, {"name": "E. Dier", "team": "England", "count": 1, "goals": 1, "years": [2018], "positions": ["CB"]}, {"name": "S. Kjær", "team": "Denmark", "count": 1, "goals": 1, "years": [2018], "positions": ["CB"]}, {"name": "S. Ignashevich", "team": "Russia", "count": 2, "goals": 2, "years": [2018], "positions": ["CB"]}, {"name": "Gerard Piqué", "team": "Spain", "count": 1, "goals": 1, "years": [2018], "positions": ["CB"]}, {"name": "Sergio Ramos", "team": "Spain", "count": 1, "goals": 1, "years": [2018], "positions": ["CB"]}, {"name": "Marquinhos", "team": "Brazil", "count": 1, "goals": 0, "years": [2022], "positions": ["CB"]}, {"name": "M. Yoshida", "team": "Japan", "count": 1, "goals": 0, "years": [2022], "positions": ["CB"]}, {"name": "B. Benoun", "team": "Morocco", "count": 1, "goals": 0, "years": [2022], "positions": ["CB"]}, {"name": "V. van Dijk", "team": "Netherlands", "count": 1, "goals": 0, "years": [2022], "positions": ["CB"]}, {"name": "L. Paredes", "team": "Argentina", "count": 2, "goals": 2, "years": [2022], "positions": ["CM"]}, {"name": "H. Souttar", "team": "Australia", "count": 1, "goals": 0, "years": [2026], "positions": ["CB"]}, {"name": "L. Herrington", "team": "Australia", "count": 1, "goals": 0, "years": [2026], "positions": ["CB"]}, {"name": "Hossam Abdelsalam", "team": "Egypt", "count": 1, "goals": 1, "years": [2026], "positions": ["CB"]}, {"name": "G. Gómez", "team": "Paraguay", "count": 1, "goals": 1, "years": [2026], "positions": ["CB"]}, {"name": "F. Balbuena", "team": "Paraguay", "count": 1, "goals": 0, "years": [2026], "positions": ["CB"]}, {"name": "J. Tah", "team": "Germany", "count": 1, "goals": 0, "years": [2026], "positions": ["CB"]}, {"name": "T. Koopmeiners", "team": "Netherlands", "count": 2, "goals": 2, "years": [2022, 2026], "positions": ["CM"]}, {"name": "D. Sánchez", "team": "Colombia", "count": 1, "goals": 0, "years": [2026], "positions": ["CB"]}, {"name": "M. Akanji", "team": "Switzerland", "count": 1, "goals": 0, "years": [2026], "positions": ["CB"]}, {"name": "K. Trippier", "team": "England", "count": 1, "goals": 1, "years": [2018], "positions": ["FB"]}, {"name": "J. Pivarić", "team": "Croatia", "count": 1, "goals": 0, "years": [2018], "positions": ["FB"]}, {"name": "Mário Fernandes", "team": "Russia", "count": 1, "goals": 0, "years": [2018], "positions": ["FB"]}, {"name": "D. Vida", "team": "Croatia", "count": 1, "goals": 1, "years": [2018], "positions": ["FB"]}, {"name": "G. Montiel", "team": "Argentina", "count": 2, "goals": 2, "years": [2022], "positions": ["FB"]}, {"name": "K. Mitoma", "team": "Japan", "count": 1, "goals": 0, "years": [2022], "positions": ["CM"]}, {"name": "A. Hakimi", "team": "Morocco", "count": 2, "goals": 1, "years": [2022, 2026], "positions": ["FB"]}, {"name": "Rami Rabia", "team": "Egypt", "count": 1, "goals": 1, "years": [2026], "positions": ["FB"]}, {"name": "J. Canale", "team": "Paraguay", "count": 1, "goals": 1, "years": [2026], "positions": ["FB"]}, {"name": "M. Rashford", "team": "England", "count": 1, "goals": 1, "years": [2018], "positions": ["ST"]}, {"name": "J. Henderson", "team": "England", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "M. Uribe", "team": "Colombia", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "C. Eriksen", "team": "Denmark", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "M. Badelj", "team": "Croatia", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "A. Kramarić", "team": "Croatia", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "M. Krohn-Dehli", "team": "Denmark", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "L. Schöne", "team": "Denmark", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "I. Rakitić", "team": "Croatia", "count": 2, "goals": 2, "years": [2018], "positions": ["CM"]}, {"name": "M. Brozović", "team": "Croatia", "count": 2, "goals": 2, "years": [2018, 2022], "positions": ["CM"]}, {"name": "A. Dzagoev", "team": "Russia", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "M. Kovačić", "team": "Croatia", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "Andrés Iniesta", "team": "Spain", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "Koke", "team": "Spain", "count": 1, "goals": 0, "years": [2018], "positions": ["CM"]}, {"name": "A. Golovin", "team": "Russia", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "Iago Aspas", "team": "Spain", "count": 1, "goals": 0, "years": [2018], "positions": ["ST"]}, {"name": "P. Dybala", "team": "Argentina", "count": 1, "goals": 1, "years": [2022], "positions": ["ST"]}, {"name": "A. Tchouaméni", "team": "France", "count": 1, "goals": 0, "years": [2022], "positions": ["CM"]}, {"name": "N. Vlašić", "team": "Croatia", "count": 2, "goals": 2, "years": [2022], "positions": ["CM"]}, {"name": "Rodrygo", "team": "Brazil", "count": 1, "goals": 0, "years": [2022], "positions": ["W"]}, {"name": "L. Majer", "team": "Croatia", "count": 1, "goals": 1, "years": [2022], "positions": ["CM"]}, {"name": "Casemiro", "team": "Brazil", "count": 1, "goals": 1, "years": [2022], "positions": ["CM"]}, {"name": "A. Sabiri", "team": "Morocco", "count": 1, "goals": 1, "years": [2022], "positions": ["CM"]}, {"name": "Pablo Sarabia", "team": "Spain", "count": 1, "goals": 0, "years": [2022], "positions": ["W"]}, {"name": "Carlos Soler", "team": "Spain", "count": 1, "goals": 0, "years": [2022], "positions": ["CM"]}, {"name": "Sergio Busquets", "team": "Spain", "count": 1, "goals": 0, "years": [2022], "positions": ["CM"]}, {"name": "S. Berghuis", "team": "Netherlands", "count": 1, "goals": 0, "years": [2022], "positions": ["W"]}, {"name": "W. Weghorst", "team": "Netherlands", "count": 2, "goals": 2, "years": [2022, 2026], "positions": ["CM", "ST"]}, {"name": "E. Fernández", "team": "Argentina", "count": 1, "goals": 0, "years": [2022], "positions": ["CM"]}, {"name": "Mahmoud Saber", "team": "Egypt", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "J. Irvine", "team": "Australia", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "A. Mabil", "team": "Australia", "count": 1, "goals": 1, "years": [2026], "positions": ["W"]}, {"name": "J. Kimmich", "team": "Germany", "count": 1, "goals": 1, "years": [2026], "positions": ["FB"]}, {"name": "N. El Aynaoui", "team": "Morocco", "count": 1, "goals": 0, "years": [2026], "positions": ["CM"]}, {"name": "C. Talbi", "team": "Morocco", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "Q. Timber", "team": "Netherlands", "count": 1, "goals": 0, "years": [2026], "positions": ["CM"]}, {"name": "I. Saibari", "team": "Morocco", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "J. Quintero", "team": "Colombia", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "R. Vargas", "team": "Switzerland", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "J. Cuadrado", "team": "Colombia", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "L. Muriel", "team": "Colombia", "count": 1, "goals": 1, "years": [2018], "positions": ["W"]}, {"name": "D. Kuzyaev", "team": "Russia", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "D. Cheryshev", "team": "Russia", "count": 1, "goals": 1, "years": [2018], "positions": ["CM"]}, {"name": "K. Coman", "team": "France", "count": 1, "goals": 0, "years": [2022], "positions": ["W"]}, {"name": "M. Oršić", "team": "Croatia", "count": 1, "goals": 1, "years": [2022], "positions": ["W"]}, {"name": "T. Minamino", "team": "Japan", "count": 1, "goals": 0, "years": [2022], "positions": ["W"]}, {"name": "M. Pašalić", "team": "Croatia", "count": 1, "goals": 1, "years": [2022], "positions": ["CM"]}, {"name": "H. Ziyech", "team": "Morocco", "count": 1, "goals": 1, "years": [2022], "positions": ["W"]}, {"name": "J. Musiala", "team": "Germany", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "M. Galarza", "team": "Paraguay", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "N. Amiri", "team": "Germany", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "J. Kluivert", "team": "Netherlands", "count": 1, "goals": 0, "years": [2026], "positions": ["W"]}, {"name": "C. Summerville", "team": "Netherlands", "count": 1, "goals": 0, "years": [2026], "positions": ["W"]}, {"name": "J. Campaz", "team": "Colombia", "count": 1, "goals": 1, "years": [2026], "positions": ["W"]}, {"name": "L. Díaz", "team": "Colombia", "count": 1, "goals": 1, "years": [2026], "positions": ["W"]}, {"name": "R. Falcao", "team": "Colombia", "count": 1, "goals": 1, "years": [2018], "positions": ["ST"]}, {"name": "C. Bacca", "team": "Colombia", "count": 1, "goals": 0, "years": [2018], "positions": ["ST"]}, {"name": "N. Jørgensen", "team": "Denmark", "count": 1, "goals": 0, "years": [2018], "positions": ["ST"]}, {"name": "F. Smolov", "team": "Russia", "count": 2, "goals": 1, "years": [2018], "positions": ["ST"]}, {"name": "R. Kolo Muani", "team": "France", "count": 1, "goals": 1, "years": [2022], "positions": ["ST"]}, {"name": "Pedro", "team": "Brazil", "count": 1, "goals": 1, "years": [2022], "positions": ["ST"]}, {"name": "T. Asano", "team": "Japan", "count": 1, "goals": 1, "years": [2022], "positions": ["ST"]}, {"name": "M. Livaja", "team": "Croatia", "count": 1, "goals": 0, "years": [2022], "positions": ["ST"]}, {"name": "L. de Jong", "team": "Netherlands", "count": 1, "goals": 1, "years": [2022], "positions": ["ST"]}, {"name": "Mohamed Salah", "team": "Egypt", "count": 1, "goals": 1, "years": [2026], "positions": ["ST"]}, {"name": "Maurício", "team": "Paraguay", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "N. Woltemade", "team": "Germany", "count": 1, "goals": 0, "years": [2026], "positions": ["ST"]}, {"name": "A. Sanabria", "team": "Paraguay", "count": 1, "goals": 0, "years": [2026], "positions": ["ST"]}, {"name": "S. Rahimi", "team": "Morocco", "count": 1, "goals": 1, "years": [2026], "positions": ["CM"]}, {"name": "Z. Amdouni", "team": "Switzerland", "count": 1, "goals": 1, "years": [2026], "positions": ["ST"]}, {"name": "C. Itten", "team": "Switzerland", "count": 1, "goals": 1, "years": [2026], "positions": ["ST"]}, {"name": "J. Hernández", "team": "Colombia", "count": 1, "goals": 0, "years": [2026], "positions": ["ST"]}];
-const LS_KEY='pk_decisions_ABC', IMG_KEY='pk_imgcache_v2', NAMES_KEY='pk_names';
-const B_IDS=['A','B','C'];
+const LS_KEY='pk_decisions_ABC', IMG_KEY='pk_imgcache_v2', NAMES_KEY='pk_names', NB_KEY='pk_nbuckets';
+const ALL_IDS=['A','B','C'];
+let B_IDS=['A','B','C'];   // active buckets: ['A','B'] or ['A','B','C']
 const COL={A:'var(--a)',B:'var(--b)',C:'var(--c)'};
 const HEX={A:'#3b82f6',B:'#f59e0b',C:'#14b8a6'};
 const FLAGS = {
@@ -166,7 +181,7 @@ const FLAGS = {
 const $=id=>document.getElementById(id);
 const players=PLAYERS_RAW.map((p,i)=>({...p, i, key:p.name+" | "+p.team, flag:FLAGS[p.team]||"🏳️", bucket:null}));
 const total=players.length;
-let decisions={}, names={A:'',B:'',C:''}, cur=0, busy=false;
+let decisions={}, names={A:'',B:'',C:''}, nBuckets=3, setupN=3, cur=0, busy=false;
 // optional custom bucket names: full label (default "Bucket A") and short label (default "A")
 const bname=id=>((names[id]||'').trim()||('Bucket '+id));
 const blabel=id=>((names[id]||'').trim()||id);
@@ -297,15 +312,16 @@ function prefetch(i){ if(i>=0&&i<total&&!imgCache[players[i].key]) getImages(i);
 /* ---------- app ---------- */
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(decisions)); }catch(e){} }
-function counts(){ const n={A:0,B:0,C:0}; for(const p of players) if(n[p.bucket]!==undefined) n[p.bucket]++; return {...n, decided:n.A+n.B+n.C}; }
+function counts(){ const n={A:0,B:0,C:0}; for(const p of players) if(p.bucket && n[p.bucket]!==undefined) n[p.bucket]++;
+  return {...n, decided:B_IDS.reduce((s,id)=>s+n[id],0)}; }
 
 function boot(){
   try{ decisions=JSON.parse(localStorage.getItem(LS_KEY)||"{}"); }catch(e){ decisions={}; }
   try{ names=Object.assign({A:'',B:'',C:''}, JSON.parse(localStorage.getItem(NAMES_KEY)||"{}")); }catch(e){}
-  for(const p of players) p.bucket = decisions[p.key]||null;
-  cur=players.findIndex(p=>!p.bucket); if(cur<0) cur=total;
+  const savedN=parseInt(localStorage.getItem(NB_KEY)||"0",10);
+  const hasPicks=Object.values(decisions).some(v=>v);
+  nBuckets=(savedN===2||savedN===3)?savedN:(hasPicks?3:0);  // 0 = not chosen yet -> setup
   $('total').textContent=total;
-  applyNames();
   $('btnA').onclick=()=>decide('A');
   $('btnB').onclick=()=>decide('B');
   $('btnC').onclick=()=>decide('C');
@@ -313,7 +329,59 @@ function boot(){
   $('lb').onclick=()=>{ $('lb').style.display='none'; };
   window.addEventListener('pointermove',onMove,{passive:false});
   window.addEventListener('pointerup',onUp);
+  if(!nBuckets){ showSetup(); return; }
+  begin();
+}
+
+function begin(){
+  B_IDS=ALL_IDS.slice(0,nBuckets);
+  for(const p of players) p.bucket = B_IDS.includes(decisions[p.key])?decisions[p.key]:null;
+  cur=players.findIndex(p=>!p.bucket); if(cur<0) cur=total;
+  applyBucketUI(); applyNames();
   render();
+}
+
+function applyBucketUI(){
+  $('btnC').style.display = nBuckets===3 ? 'flex' : 'none';
+  const tc=$('tallyC'); if(tc) tc.style.display = nBuckets===3 ? '' : 'none';
+  $('hint').innerHTML = nBuckets===3
+    ? 'swipe ← A · → B · ↓ C &nbsp;·&nbsp; ↑ back &nbsp;·&nbsp; tap photo to enlarge'
+    : 'swipe ← A · → B &nbsp;·&nbsp; ↑ back &nbsp;·&nbsp; tap photo to enlarge';
+}
+
+function showSetup(){
+  $('footer').style.display='none'; $('hint').style.display='none';
+  $('btnBack').disabled=true; $('pos').textContent='–'; $('fill').style.width='0%';
+  setupN = nBuckets || 3;
+  const ni=L=>`<input class="ninput" data-b="${L}" maxlength="15" placeholder="Bucket ${L}" value="${esc(names[L]||'')}" aria-label="Name for bucket ${L}">`;
+  $('main').innerHTML=`<div class="setup">
+    <div class="slogo">⚽</div>
+    <h1>Penalty Kickers</h1>
+    <p>Sort ${total} World Cup penalty takers into buckets, then see how often each bucket scores.</p>
+    <div class="setrow"><span class="slabel">How many buckets?</span>
+      <div class="seg">
+        <button class="segbtn" id="nb2" onclick="setN(2)">2</button>
+        <button class="segbtn" id="nb3" onclick="setN(3)">3</button>
+      </div>
+    </div>
+    <div class="setrow col"><span class="slabel">Name them (optional)</span>
+      <div class="ninputs">${ni('A')}${ni('B')}${ni('C')}</div>
+    </div>
+    <button class="startbtn" onclick="startFromSetup()">Start sorting →</button>
+  </div>`;
+  setN(setupN);
+}
+function setN(n){
+  setupN=n;
+  $('nb2').classList.toggle('active', n===2);
+  $('nb3').classList.toggle('active', n===3);
+  const c=document.querySelector('.ninput[data-b="C"]'); if(c) c.style.display = n===3?'':'none';
+}
+function startFromSetup(){
+  document.querySelectorAll('.setup .ninput').forEach(inp=>{ names[inp.dataset.b]=inp.value; });
+  nBuckets=setupN; saveNames();
+  try{ localStorage.setItem(NB_KEY, String(nBuckets)); }catch(e){}
+  begin();
 }
 
 async function render(){
@@ -355,7 +423,7 @@ async function render(){
 }
 
 function decide(bucket){
-  if(busy||cur>=total) return;
+  if(busy||cur>=total||!B_IDS.includes(bucket)) return;
   const i=cur;
   players[i].bucket=bucket; decisions[players[i].key]=bucket; persist();
   const btn=$('btn'+bucket); if(btn){ btn.classList.add('hit'); setTimeout(()=>btn.classList.remove('hit'),150); }
@@ -385,7 +453,7 @@ function onMove(e){
   clearHints();
   let id=null;
   if(horiz) id = drag.dx<0?'A':'B';
-  else if(drag.dy>0) id='C';
+  else if(drag.dy>0 && nBuckets===3) id='C';
   if(id){ const tag=$('tag'+id), gl=$('glow'+id); if(tag)tag.style.opacity=t; if(gl)gl.style.opacity=t*0.9; }
 }
 function onUp(){
@@ -396,7 +464,7 @@ function onUp(){
   const hT=Math.min(140, window.innerWidth*0.22), vT=Math.min(120, window.innerHeight*0.16);
   let bucket=null, fx=0, fy=0;
   if(horiz && Math.abs(dx)>hT){ bucket=dx<0?'A':'B'; fx=dx<0?-1.2:1.2; }
-  else if(!horiz && dy>vT){ bucket='C'; fy=1.2; }
+  else if(!horiz && dy>vT && nBuckets===3){ bucket='C'; fy=1.2; }
   if(bucket){
     card.style.transition='transform .25s ease-out, opacity .25s';
     card.style.transform=`translate(${fx*innerWidth}px,${fy*innerHeight}px) rotate(${fx*20}deg)`;
@@ -440,22 +508,27 @@ function comparisons(g){
     return {label, winner:hi.l, rel:Math.round((hi.p.pct/lo.p.pct-1)*100),
             pts:(hi.p.pct-lo.p.pct).toFixed(1), ratio:(hi.p.pct/lo.p.pct).toFixed(2)};
   };
-  const rows=[ one(g.A,g.B,'A','B',`${blabel('A')} vs ${blabel('B')}`),
-               one(g.B,g.C,'B','C',`${blabel('B')} vs ${blabel('C')}`),
-               one(g.A,g.C,'A','C',`${blabel('A')} vs ${blabel('C')}`) ];
-  const nonEmpty=B_IDS.filter(id=>g[id].k>0);
-  let topRow={label:'Top vs the rest', nodata:true};
-  if(nonEmpty.length>=2){
-    const top=nonEmpty.slice().sort((a,b)=>g[b].pct-g[a].pct)[0];
-    const others=B_IDS.filter(id=>id!==top);
-    const rK=others.reduce((s,id)=>s+g[id].k,0), rG=others.reduce((s,id)=>s+g[id].goals,0);
-    const label=bname(top)+' vs the rest';
-    if(rK>0){
-      const rPct=100*rG/rK, tp=g[top].pct;
-      if(Math.abs(tp-rPct)<0.05) topRow={label, even:true, pct:tp};
-      else topRow={label, winner:top, rel:Math.round((tp/rPct-1)*100),
-                   pts:(tp-rPct).toFixed(1), ratio:(tp/rPct).toFixed(2), rest:fmt(rPct)};
-    } else topRow={label, nodata:true};
+  const rows=[];
+  for(let i=0;i<B_IDS.length;i++) for(let j=i+1;j<B_IDS.length;j++){
+    const a=B_IDS[i], b=B_IDS[j];
+    rows.push(one(g[a],g[b],a,b,`${blabel(a)} vs ${blabel(b)}`));
+  }
+  // "top vs the rest" only adds information with 3+ buckets (with 2 it equals the single pair)
+  let topRow=null;
+  if(B_IDS.length>=3){
+    const nonEmpty=B_IDS.filter(id=>g[id].k>0);
+    if(nonEmpty.length>=2){
+      const top=nonEmpty.slice().sort((a,b)=>g[b].pct-g[a].pct)[0];
+      const others=B_IDS.filter(id=>id!==top);
+      const rK=others.reduce((s,id)=>s+g[id].k,0), rG=others.reduce((s,id)=>s+g[id].goals,0);
+      const label=bname(top)+' vs the rest';
+      if(rK>0){
+        const rPct=100*rG/rK, tp=g[top].pct;
+        if(Math.abs(tp-rPct)<0.05) topRow={label, even:true, pct:tp};
+        else topRow={label, winner:top, rel:Math.round((tp/rPct-1)*100),
+                     pts:(tp-rPct).toFixed(1), ratio:(tp/rPct).toFixed(2), rest:fmt(rPct)};
+      } else topRow={label, nodata:true};
+    } else topRow={label:'Top vs the rest', nodata:true};
   }
   return {rows, topRow};
 }
@@ -475,7 +548,7 @@ function done(){
   const compHTML=`<div class="compare">
     <div class="ctitle">Head-to-head — how much more likely to score</div>
     ${cd.rows.map(r=>`<div class="crow"><span class="pair">${r.label}</span><span class="res">${rowHTML(r)}</span></div>`).join('')}
-    <div class="crow toprow"><span class="pair">${cd.topRow.label}</span><span class="res">${rowHTML(cd.topRow)}</span></div>
+    ${cd.topRow?`<div class="crow toprow"><span class="pair">${cd.topRow.label}</span><span class="res">${rowHTML(cd.topRow)}</span></div>`:''}
   </div>`;
   const bar=L=>{ const x=g[L];
     return `<div class="srow">
@@ -484,14 +557,12 @@ function done(){
       <div class="strack"><div class="sfill" data-w="${x.pct}" style="width:0;background:${HEX[L]}"></div></div>
     </div>`; };
   const trow=(L,label)=>`<tr><td>${label}</td><td>${g[L].pl}</td><td>${g[L].k}</td><td>${g[L].goals}</td><td>${fmt(g[L].pct)}</td></tr>`;
-  const ninput=L=>`<input class="ninput" data-b="${L}" maxlength="16" placeholder="Bucket ${L}" value="${esc(names[L]||'')}" aria-label="Name for bucket ${L}">`;
   $('main').innerHTML=`<div class="stats">
     <h1>All ${total} sorted — stats by bucket</h1>
     <div class="heronum">${fmt(g.all.pct)}</div>
     <div class="herosub">overall: ${g.all.goals} of ${g.all.k} penalties scored</div>
-    <div class="names"><span class="nlabel">Name your buckets (optional):</span>${ninput('A')}${ninput('B')}${ninput('C')}</div>
     <div class="schart">
-      ${bar('A')}${bar('B')}${bar('C')}
+      ${B_IDS.map(bar).join('')}
       <div class="saxisline" style="left:${g.all.pct}%"><span class="saxislab" style="left:0">avg ${fmt(g.all.pct)}</span></div>
     </div>
     <div class="verdict2">
@@ -501,26 +572,22 @@ function done(){
     ${compHTML}
     <table class="stable">
       <thead><tr><th>Bucket</th><th>Players</th><th>Penalties</th><th>Scored</th><th>Rate</th></tr></thead>
-      <tbody>${trow('A',esc(bname('A')))}${trow('B',esc(bname('B')))}${trow('C',esc(bname('C')))}${trow('all','All players')}</tbody>
+      <tbody>${B_IDS.map(L=>trow(L,esc(bname(L)))).join('')}${trow('all','All players')}</tbody>
     </table>
     <div class="actions">
       <button class="share" onclick="shareImage()">📷 Share image of results</button>
-      <button onclick="download('bucketA.txt',bucketText('A'))">Download A</button>
-      <button onclick="download('bucketB.txt',bucketText('B'))">Download B</button>
-      <button onclick="download('bucketC.txt',bucketText('C'))">Download C</button>
+      ${B_IDS.map(L=>`<button onclick="download('bucket${L}.txt',bucketText('${L}'))">Download ${L}</button>`).join('')}
       <button onclick="resetAll()">Start over</button>
     </div>
     <div class="snote">Rates are per penalty kick; a player is counted once in a bucket but may have taken several. Press ↑ Back to revise any pick. Your picks are saved in this browser.</div>
   </div>`;
   requestAnimationFrame(()=>document.querySelectorAll('.sfill').forEach(f=>{f.style.width=f.dataset.w+'%';}));
-  document.querySelectorAll('.ninput').forEach(inp=>inp.addEventListener('change',()=>{
-    names[inp.dataset.b]=inp.value; saveNames(); applyNames(); done();  // re-render with new names
-  }));
 }
 function resetAll(){
   if(!confirm('Clear all your picks and start over?')) return;
   decisions={}; for(const p of players) p.bucket=null; persist();
-  cur=0; render();
+  try{ localStorage.removeItem(NB_KEY); }catch(e){} nBuckets=0;
+  cur=0; showSetup();
 }
 
 /* ---------- shareable results image ---------- */
@@ -535,7 +602,11 @@ function clipText(x, text, maxW){  // truncate to fit maxW at the current ctx.fo
   return t+'…';
 }
 function drawResultsCanvas(g, v){
-  const W=1080, H=1350, pad=80;
+  const W=1080, pad=80, barW=W-2*pad, barH=44, gap=104, rowH=62;
+  const cd=comparisons(g), allRows= cd.topRow?[...cd.rows, cd.topRow]:cd.rows;
+  // height adapts to the number of buckets / comparison rows
+  const barsEnd=430 + B_IDS.length*gap;
+  const H=Math.round(barsEnd + 112 + 28 + allRows.length*rowH + 118);
   const c=document.createElement('canvas'); c.width=W; c.height=H;
   const x=c.getContext('2d');
   x.fillStyle='#12161c'; x.fillRect(0,0,W,H);
@@ -546,7 +617,7 @@ function drawResultsCanvas(g, v){
   x.fillStyle='#8b95a7'; x.font='400 29px system-ui,Arial';
   x.fillText(`overall — ${g.all.goals} of ${g.all.k} penalties scored`, pad, 328);
   // bars
-  const barW=W-2*pad, barH=44, gap=104; let y=430;
+  let y=430;
   for(const id of B_IDS){
     const s=g[id];
     x.fillStyle=HEX[id]; rrect(x,pad,y-42,22,22,6); x.fill();
@@ -567,7 +638,6 @@ function drawResultsCanvas(g, v){
   x.textAlign='center'; x.fillStyle='#8b95a7'; x.font='700 22px system-ui,Arial';
   x.fillText('HEAD-TO-HEAD — HOW MUCH MORE LIKELY TO SCORE', W/2, y);
   y+=28;
-  const cd=comparisons(g), allRows=[...cd.rows, cd.topRow], rowH=62;
   for(const r of allRows){
     const isTop=(r===cd.topRow);
     if(isTop){ x.fillStyle='rgba(255,255,255,.05)'; rrect(x,pad-8,y+4,barW+16,rowH-8,12); x.fill(); }
@@ -608,7 +678,7 @@ async function shareImage(){
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'){e.preventDefault();decide('A');}
   else if(e.key==='ArrowRight'){e.preventDefault();decide('B');}
-  else if(e.key==='ArrowDown'){e.preventDefault();decide('C');}
+  else if(e.key==='ArrowDown'){e.preventDefault();if(nBuckets===3)decide('C');}
   else if(e.key==='ArrowUp'||e.key==='Backspace'){e.preventDefault();back();}
 });
 boot();

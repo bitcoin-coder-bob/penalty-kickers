@@ -1,14 +1,17 @@
 # Penalty Kickers
 
-A single page for triaging World Cup penalty takers into three buckets (A, B, C),
-then seeing how the buckets compare on scoring rate.
+A single page for triaging World Cup penalty takers into buckets, then seeing how
+the buckets compare on scoring rate.
+
+At the start you choose **2 or 3 buckets** and optionally **name** them; the names
+then show on the sorting buttons, the results page, and the shared image.
 
 For each player it pulls a couple of photos plus their name and country, and you
 sort with:
 
-- **swipe** left → A, right → B, down → C (touch or mouse drag), or
+- **swipe** left → A, right → B, down → C (3-bucket mode; touch or mouse drag), or
 - the **← / → / ↓ arrow keys**, or
-- the three on-screen **buttons**.
+- the on-screen **buttons** (two or three, matching your choice).
 
 **↑ Back** (header button, `↑` or Backspace) steps to the previous player so you
 can revise a pick. After the last player it shows a **stats breakdown by bucket**:
