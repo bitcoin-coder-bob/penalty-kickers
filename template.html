@@ -132,7 +132,7 @@
 
 <script>
 const PLAYERS_RAW = /*PLAYERS*/;
-const LS_KEY='pk_decisions_ABC', IMG_KEY='pk_imgcache';
+const LS_KEY='pk_decisions_ABC', IMG_KEY='pk_imgcache_v2';
 const B_IDS=['A','B','C'];
 const COL={A:'var(--a)',B:'var(--b)',C:'var(--c)'};
 const HEX={A:'#3b82f6',B:'#f59e0b',C:'#14b8a6'};
@@ -255,11 +255,14 @@ async function fetchImages(name, team){
 }
 let imgCache={};
 try{ imgCache=JSON.parse(localStorage.getItem(IMG_KEY)||"{}"); }catch(e){ imgCache={}; }
+try{ localStorage.removeItem('pk_imgcache'); }catch(e){}  // drop the old cache that could store empty results
 async function getImages(i){
   const p=players[i], k=p.key;
   if(imgCache[k]) return imgCache[k];
   let d; try{ d=await fetchImages(p.name,p.team); }catch(e){ d={title:null,wiki:null,images:[]}; }
-  if(d.title||d.images.length){ imgCache[k]=d; try{ localStorage.setItem(IMG_KEY,JSON.stringify(imgCache)); }catch(e){} }
+  if(d.images && d.images.length){  // only cache real hits, so a transient miss always retries
+    imgCache[k]=d; try{ localStorage.setItem(IMG_KEY,JSON.stringify(imgCache)); }catch(e){}
+  }
   return d;
 }
 function prefetch(i){ if(i>=0&&i<total&&!imgCache[players[i].key]) getImages(i); }
